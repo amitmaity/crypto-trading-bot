@@ -1,0 +1,5 @@
+logs/*
+.idea
+settings.ini
+.DS_Store
+venv
