@@ -1,5 +1,6 @@
-logs/*
+logs
 .idea
 settings.ini
 .DS_Store
 venv
+demo.py

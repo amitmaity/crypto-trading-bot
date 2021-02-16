@@ -1,18 +1,18 @@
 import binance_apis
 
 
-def get_price_for_buy(coin_pair_symbol, bot_config):
-    result = binance_apis.get_24h_price(coin_pair_symbol)
-    weighted_avg_price = float(result['weightedAvgPrice'])
-    print(result)
-    result = binance_apis.get_current_price(coin_pair_symbol)
-    current_price = float(result['price'])
-    print(result)
-    if current_price < weighted_avg_price:
-        price_diff = weighted_avg_price - current_price
-        price_diff_percent = price_diff / weighted_avg_price * 100
+def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
+    avg_min = int(bot_config['average_minute'])
+    current_price = float(ticker_price['lastPrice'])
+    max_price_data = db_price_data_obj.get_max_price_in_range(avg_min)
+    if max_price_data[1] < (avg_min * 12):
+        return None
+    max_price = max_price_data[0]
+    if current_price < max_price:
+        price_diff = max_price - current_price
+        price_diff_percent = price_diff / max_price * 100
         if price_diff_percent > float(bot_config['buy_price_diff_percentage']):
-            return {'current_price': current_price, 'average_price': weighted_avg_price}
+            return {'current_price': current_price, 'average_price': max_price}
         else:
             return None
     else:
