@@ -39,8 +39,14 @@ class BotConfig(Database):
 
 
 class Transaction(Database):
-    def get_last_transaction(self):
-        self.cursor.execute("SELECT * FROM transactions ORDER BY id DESC")
+    def get_last_buy_transaction(self):
+        self.cursor.execute("SELECT * FROM buy_transactions ORDER BY id DESC")
+        result = self.cursor.fetchone()
+        return result
+
+    def get_sell_transaction_by_buy_transaction(self, buy_id):
+        sql = 'SELECT * FROM sell_transactions WHERE buy_order_ref = ' + buy_id
+        self.cursor.execute(sql)
         result = self.cursor.fetchone()
         return result
 

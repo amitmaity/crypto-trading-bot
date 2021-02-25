@@ -32,3 +32,15 @@ def get_price_for_sell(coin_pair_symbol, bot_config, buy_price):
             return None
     else:
         return None
+
+
+def calculate_average_of_order_fills(fills):
+    total_price = 0
+    total_quantity = 0
+    commission = 0
+    for fill in fills:
+        total_price += (fill['price'] * fill['qty'])
+        total_quantity += fill['qty']
+        commission += fill['commission']
+    average_price = total_price / total_quantity
+    return {'average_price': average_price, 'quantity': total_quantity, 'commission': commission}
