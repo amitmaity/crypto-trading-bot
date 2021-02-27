@@ -1,6 +1,7 @@
 import mysql.connector
 import time
 from configparser import ConfigParser
+import calculator
 
 
 class Database:
@@ -19,7 +20,7 @@ class Database:
             password=db_pass,
             database=db_name
         )
-        self.cursor = self.mydb.cursor()
+        self.cursor = self.mydb.cursor(dictionary=True)
 
 
 class BotConfig(Database):
@@ -29,7 +30,9 @@ class BotConfig(Database):
         self.cursor.execute("SELECT * FROM config")
         result = self.cursor.fetchall()
         for row in result:
-            self.bot_config[row[0]] = row[1]
+            config_name = row['config_name']
+            config_value = row['config_value']
+            self.bot_config[config_name] = config_value
         return self.bot_config
 
     def update_bot_config(self, config_name, config_value):
@@ -45,10 +48,45 @@ class Transaction(Database):
         return result
 
     def get_sell_transaction_by_buy_transaction(self, buy_id):
-        sql = 'SELECT * FROM sell_transactions WHERE buy_order_ref = ' + buy_id
-        self.cursor.execute(sql)
+        sql = 'SELECT * FROM sell_transactions WHERE buy_order_ref = %s'
+        self.cursor.execute(sql, (buy_id,))
         result = self.cursor.fetchone()
         return result
+
+    def insert_buy_transaction(self, data):
+        fill_price = None
+        fill_quantity = None
+        commission = None
+        timestamp = int(time.time())
+        if data['status'] == 'FILLED':
+            fill = calculator.calculate_average_of_order_fills(data['fills'])
+            fill_price = fill['average_price']
+            fill_quantity = fill['quantity']
+            commission = fill['commission']
+        sql = "INSERT INTO buy_transactions (order_id, client_order_id, order_quantity, order_price, status, " \
+              "fill_price, fill_quantity, commission, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
+        val = (data['orderId'], data['clientOrderId'], data['origQty'], data['price'], data['status'], fill_price,
+               fill_quantity, commission, timestamp)
+        self.cursor.execute(sql, val)
+        self.mydb.commit()
+
+    def insert_sell_transaction(self, data, buy_order_ref):
+        fill_price = None
+        fill_quantity = None
+        commission = None
+        timestamp = int(time.time())
+        if data['status'] == 'FILLED':
+            fill = calculator.calculate_average_of_order_fills(data['fills'])
+            fill_price = fill['average_price']
+            fill_quantity = fill['quantity']
+            commission = fill['commission']
+        sql = "INSERT INTO sell_transactions (buy_order_ref, order_id, client_order_id, order_quantity, order_price, " \
+              "status, fill_price, fill_quantity, commission, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+              "%s) "
+        val = (buy_order_ref, data['orderId'], data['clientOrderId'], data['origQty'], data['price'], data['status'],
+               fill_price, fill_quantity, commission, timestamp)
+        self.cursor.execute(sql, val)
+        self.mydb.commit()
 
 
 class PriceData(Database):

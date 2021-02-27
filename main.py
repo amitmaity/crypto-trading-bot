@@ -42,18 +42,33 @@ while True:
         last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
         buy_price = last_buy_transaction['fill_price']
         current_price = calculator.get_price_for_sell(coin_pair_symbol, bot_config, buy_price)
+        quantity = last_buy_transaction['fill_quantity']
         if current_price is not None:
-            logger.write_log('sell_price: ' + current_price)
-            action = 'BUY'
+            # Log
+            message = "Place sell order of {} coins at rate {}"
+            logger.write_log(message.format(quantity, current_price))
+            # Place sell order
+            result = binance_apis.sell_coin(coin_pair_symbol, quantity, current_price)
+            # make entry in database
+            db_transaction_obj.insert_sell_transaction(result, last_buy_transaction['id'])
+            # Determine next operation
+            action = 'BUY' if result['status'] == 'FILLED' else 'CHECK_SELL_STATUS'
 
     # BUY logic
     if action == 'BUY':
         price_data = calculator.get_price_for_buy(ticker_price, bot_config, db_price_data_obj)
+        quote_coin_usage_per_transaction = bot_config['quote_coin_usage_per_transaction']
+        quantity = calculator.calculate_coin_quantity(quote_coin_usage_per_transaction, ticker_price['lastPrice'])
         if price_data is not None:
+            # Get price and log
             buy_price = price_data['current_price']
-            average_price = price_data['average_price']
-            message = "buy_price: {}, average_price: {}"
-            logger.write_log(message.format(buy_price, average_price))
-            action = 'SELL'
+            message = "Place buy order of {} coins at rate {}"
+            logger.write_log(message.format(quantity, buy_price))
+            # Place buy order
+            result = binance_apis.buy_coin(coin_pair_symbol, quantity, buy_price)
+            # make entry in database
+            db_transaction_obj.insert_buy_transaction(result)
+            # Determine next operation
+            action = 'SELL' if result['status'] == 'FILLED' else 'CHECK_BUY_STATUS'
 
     time.sleep(SLEEP_TIME)
