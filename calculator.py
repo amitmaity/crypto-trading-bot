@@ -3,18 +3,22 @@ import logger
 
 
 def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
-    avg_min = int(bot_config['average_minute'])
+    price_range_minutes = int(bot_config['price_range_minutes'])
     current_price = float(ticker_price['lastPrice'])
-    max_price_data = db_price_data_obj.get_max_price_in_range(avg_min)
-    if max_price_data['count'] < (avg_min * 12):
+    max_price_data = db_price_data_obj.get_max_price_in_range(price_range_minutes)
+    if max_price_data['count'] < (price_range_minutes * 12):
         return None
-    max_price = max_price_data['max_price']
+    max_price = float(max_price_data['max_price'])
     if current_price < max_price:
         price_diff = max_price - current_price
         price_diff_percent = price_diff / max_price * 100
-        message = "BUY_CHECK|max_price: {}, current_price: {}, price_dif_percentage: {}"
-        logger.write_log(message.format(max_price, current_price, price_diff_percent))
-        if price_diff_percent > float(bot_config['buy_price_diff_percentage']):
+        price_diff_24hr_high = float(ticker_price['highPrice']) - current_price
+        price_diff_24hr_high_percent = price_diff_24hr_high / float(ticker_price['highPrice']) * 100
+        message = "BUY_CHECK|max_price: {}, current_price: {}, price_diff_percent: {}, 24hr_high_diff_percent: {}"
+        logger.write_log(message.format(max_price, current_price, price_diff_percent, price_diff_24hr_high_percent))
+        cfg_buy_percent = float(bot_config['buy_price_diff_percentage'])
+        cfg_24hr_percent = float(bot_config['buy_price_diff_percentage_from_24hr_high'])
+        if price_diff_percent > cfg_buy_percent and price_diff_24hr_high_percent >= cfg_24hr_percent:
             return {'current_price': current_price}
         else:
             return None
