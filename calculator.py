@@ -7,7 +7,7 @@ def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
     price_range_minutes = int(bot_config['price_range_minutes'])
     current_price = float(ticker_price['lastPrice'])
     max_price_data = db_price_data_obj.get_max_price_in_range(price_range_minutes)
-    if max_price_data['count'] < (price_range_minutes * 12):
+    if max_price_data['count'] < (price_range_minutes * 10):
         logger.write_log('Not enough price data, count: ' + str(max_price_data['count']))
         return None
     max_price = float(max_price_data['max_price'])
@@ -58,4 +58,5 @@ def calculate_average_of_order_fills(fills):
 
 def calculate_coin_quantity(total_amount, rate):
     quantity = float(total_amount) / float(rate)
+    quantity = round(quantity, 8)
     return quantity
