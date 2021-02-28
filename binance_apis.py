@@ -67,3 +67,20 @@ def sell_coin(symbol, quantity, price):
     resp = requests.post(url, data=payload, headers=headers)
     data = resp.json()
     return data
+
+
+def check_order_status(symbol, order_id):
+    url = api_base_url + '/api/v3/order'
+    api_key = config_parser.get('exchange_settings', 'api_key')
+    secret_key = config_parser.get('exchange_settings', 'secret_key')
+    secret_key = bytes(secret_key, 'utf-8')
+    payload = {'symbol': symbol, 'orderId': order_id, 'timestamp': int(time.time() * 1000)}
+    total_params = urlencode(payload)
+    total_params = bytes(total_params, 'utf-8')
+    signature = hmac.new(secret_key, total_params, hashlib.sha256).hexdigest()
+    payload['signature'] = signature
+    headers = {'X-MBX-APIKEY': api_key}
+    params = urlencode(payload)
+    resp = requests.get(url, params, headers=headers)
+    data = resp.json()
+    return data

@@ -53,6 +53,7 @@ while True:
             db_transaction_obj.insert_sell_transaction(result, last_buy_transaction['id'])
             # Determine next operation
             action = 'BUY' if result['status'] == 'FILLED' else 'CHECK_SELL_STATUS'
+        time.sleep(SLEEP_TIME)
 
     # BUY logic
     if action == 'BUY':
@@ -70,5 +71,20 @@ while True:
             db_transaction_obj.insert_buy_transaction(result)
             # Determine next operation
             action = 'SELL' if result['status'] == 'FILLED' else 'CHECK_BUY_STATUS'
+        time.sleep(SLEEP_TIME)
 
-    time.sleep(SLEEP_TIME)
+    if action == 'CHECK_BUY_STATUS':
+        last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
+        order_detail = binance_apis.check_order_status(coin_pair_symbol, last_buy_transaction['order_id'])
+        if order_detail['status'] == 'FILLED':
+            db_transaction_obj.update_buy_transaction(order_detail)
+            action = 'SELL'
+        time.sleep(SLEEP_TIME)
+
+    if action == 'CHECK_SELL_STATUS':
+        last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
+        order_detail = binance_apis.check_order_status(coin_pair_symbol, last_buy_transaction['order_id'])
+        if order_detail['status'] == 'FILLED':
+            db_transaction_obj.update_buy_transaction(order_detail)
+            action = 'BUY'
+        time.sleep(SLEEP_TIME)
