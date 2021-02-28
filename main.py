@@ -3,6 +3,7 @@ import database
 import calculator
 import logger
 import time
+import json
 
 # Initialise the objects
 db_transaction_obj = database.Transaction()
@@ -10,7 +11,7 @@ db_bot_config_obj = database.BotConfig()
 db_price_data_obj = database.PriceData()
 
 # Initialise variables
-SLEEP_TIME = 5
+SLEEP_TIME = 4
 action = None
 bot_config = db_bot_config_obj.get_bot_configs()
 coin_pair_symbol = bot_config['base_coin'] + bot_config['quote_coin']
@@ -49,6 +50,7 @@ while True:
             logger.write_log(message.format(quantity, current_price))
             # Place sell order
             result = binance_apis.sell_coin(coin_pair_symbol, quantity, current_price)
+            logger.write_log(json.dumps(result))
             # make entry in database
             db_transaction_obj.insert_sell_transaction(result, last_buy_transaction['id'])
             # Determine next operation
@@ -67,6 +69,7 @@ while True:
             logger.write_log(message.format(quantity, buy_price))
             # Place buy order
             result = binance_apis.buy_coin(coin_pair_symbol, quantity, buy_price)
+            logger.write_log(json.dumps(result))
             # make entry in database
             db_transaction_obj.insert_buy_transaction(result)
             # Determine next operation

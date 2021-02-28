@@ -1,5 +1,6 @@
 import binance_apis
 import logger
+import json
 
 
 def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
@@ -7,6 +8,7 @@ def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
     current_price = float(ticker_price['lastPrice'])
     max_price_data = db_price_data_obj.get_max_price_in_range(price_range_minutes)
     if max_price_data['count'] < (price_range_minutes * 12):
+        logger.write_log('Not enough price data, count: ' + max_price_data['count'])
         return None
     max_price = float(max_price_data['max_price'])
     if current_price < max_price:
