@@ -4,7 +4,7 @@
 -- https://tableplus.com/
 --
 -- Database: crypto_trading_bot
--- Generation Time: 2021-02-28 12:13:44.1240
+-- Generation Time: 2021-02-28 22:19:42.6660
 -- -------------------------------------------------------------
 
 
@@ -74,7 +74,8 @@ INSERT INTO `config` (`config_name`, `config_value`) VALUES
 ('price_range_minutes', '60'),
 ('buy_price_diff_percentage_from_24hr_high', '0.8'),
 ('api_base_url', 'https://api.binance.com/'),
-('quote_coin_usage_per_transaction', '0.0001');
+('quote_coin_usage_per_transaction', '0.0001'),
+('coin_quantity_precision', '2');
 
 
 

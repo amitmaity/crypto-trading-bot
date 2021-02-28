@@ -61,7 +61,8 @@ while True:
     if action == 'BUY':
         price_data = calculator.get_price_for_buy(ticker_price, bot_config, db_price_data_obj)
         quote_coin_usage_per_transaction = bot_config['quote_coin_usage_per_transaction']
-        quantity = calculator.calculate_coin_quantity(quote_coin_usage_per_transaction, ticker_price['lastPrice'])
+        quantity = calculator.calculate_coin_quantity(quote_coin_usage_per_transaction, ticker_price['lastPrice'],
+                                                      bot_config)
         if price_data is not None:
             # Get price and log
             buy_price = price_data['current_price']

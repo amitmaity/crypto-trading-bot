@@ -56,7 +56,8 @@ def calculate_average_of_order_fills(fills):
     return {'average_price': average_price, 'quantity': total_quantity, 'commission': commission}
 
 
-def calculate_coin_quantity(total_amount, rate):
+def calculate_coin_quantity(total_amount, rate, bot_config):
     quantity = float(total_amount) / float(rate)
-    quantity = round(quantity, 8)
+    precision = int(bot_config['coin_quantity_precision'])
+    quantity = round(quantity, precision)
     return quantity
