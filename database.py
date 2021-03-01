@@ -89,14 +89,14 @@ class Transaction(Database):
         self.mydb.commit()
 
     def update_buy_transaction(self, order_details):
-        sql = "UPDATE buy_transactions SET status = 'FILLED' AND fill_price = %s AND fill_quantity = %s WHERE " \
+        sql = "UPDATE buy_transactions SET status = 'FILLED', fill_price = %s, fill_quantity = %s WHERE " \
               "order_id = %s "
         val = (order_details['price'], order_details['executedQty'], order_details['orderId'])
         self.cursor.execute(sql, val)
         self.mydb.commit()
 
     def update_sell_transaction(self, order_details):
-        sql = "UPDATE sell_transactions SET status = 'FILLED' AND fill_price = %s AND fill_quantity = %s WHERE " \
+        sql = "UPDATE sell_transactions SET status = 'FILLED', fill_price = %s, fill_quantity = %s WHERE " \
               "order_id = %s "
         val = (order_details['price'], order_details['executedQty'], order_details['orderId'])
         self.cursor.execute(sql, val)
