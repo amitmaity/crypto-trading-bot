@@ -5,7 +5,8 @@ import os
 def write_log(msg):
     if not os.path.exists('logs'):
         os.makedirs('logs')
-    file = open('logs/log.txt', 'at')
+    filename = 'logs/' + str(datetime.datetime.now().strftime("%Y-%m-%d")) + '.txt'
+    file = open(filename, 'at')
     date = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     file.write(date)
     file.write("\n")
