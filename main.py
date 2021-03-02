@@ -11,7 +11,7 @@ db_bot_config_obj = database.BotConfig()
 db_price_data_obj = database.PriceData()
 
 # Initialise variables
-SLEEP_TIME = 4
+SLEEP_TIME = 5
 action = None
 bot_config = db_bot_config_obj.get_bot_configs()
 coin_pair_symbol = bot_config['base_coin'] + bot_config['quote_coin']
@@ -43,9 +43,9 @@ while True:
         # SELL logic
         if action == 'SELL':
             last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
-            buy_price = last_buy_transaction['fill_price']
+            buy_price = float(last_buy_transaction['fill_price'])
             current_price = calculator.get_price_for_sell(coin_pair_symbol, bot_config, buy_price)
-            quantity = last_buy_transaction['fill_quantity']
+            quantity = round(float(last_buy_transaction['fill_quantity']), int(bot_config['coin_quantity_precision']))
             if current_price is not None:
                 # Log
                 message = "Place sell order of {} coins at rate {}"

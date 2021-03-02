@@ -11,7 +11,7 @@ def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
         logger.write_log('Not enough price data, count: ' + str(max_price_data['count']))
         return None
     max_price = float(max_price_data['max_price'])
-    if current_price < max_price:
+    if current_price < max_price and current_price < float(ticker_price['highPrice']):
         price_diff = max_price - current_price
         price_diff_percent = price_diff / max_price * 100
         price_diff_24hr_high = float(ticker_price['highPrice']) - current_price
@@ -31,6 +31,7 @@ def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
 def get_price_for_sell(coin_pair_symbol, bot_config, buy_price):
     result = binance_apis.get_current_price(coin_pair_symbol)
     current_price = float(result['price'])
+    buy_price = float(buy_price)
     if current_price > buy_price:
         price_diff = current_price - buy_price
         price_diff_percent = price_diff / buy_price * 100
