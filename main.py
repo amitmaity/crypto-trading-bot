@@ -44,7 +44,7 @@ while True:
         if action == 'SELL':
             last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
             buy_price = float(last_buy_transaction['fill_price'])
-            current_price = calculator.get_price_for_sell(coin_pair_symbol, bot_config, buy_price)
+            current_price = calculator.get_price_for_sell(coin_pair_symbol, bot_config, buy_price, ticker_price)
             quantity = round(float(last_buy_transaction['fill_quantity']), int(bot_config['coin_quantity_precision']))
             if current_price is not None:
                 # Log

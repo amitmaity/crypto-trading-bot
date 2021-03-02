@@ -28,9 +28,9 @@ def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
         return None
 
 
-def get_price_for_sell(coin_pair_symbol, bot_config, buy_price):
+def get_price_for_sell(coin_pair_symbol, bot_config, buy_price, ticker_price):
     result = binance_apis.get_current_price(coin_pair_symbol)
-    current_price = float(result['price'])
+    current_price = float(ticker_price['lastPrice'])
     buy_price = float(buy_price)
     if current_price > buy_price:
         price_diff = current_price - buy_price
