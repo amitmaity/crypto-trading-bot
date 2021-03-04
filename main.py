@@ -1,7 +1,7 @@
 import binance_apis
 import database
 import calculator
-import logger
+import custom_logger
 import time
 import json
 
@@ -49,10 +49,10 @@ while True:
             if current_price is not None:
                 # Log
                 message = "Place sell order of {} coins at rate {}"
-                logger.write_log(message.format(quantity, current_price))
+                custom_logger.write_log(message.format(quantity, current_price))
                 # Place sell order
                 result = binance_apis.sell_coin(coin_pair_symbol, quantity, current_price)
-                logger.write_log(json.dumps(result))
+                custom_logger.write_log(json.dumps(result))
                 # make entry in database
                 db_transaction_obj.insert_sell_transaction(result, last_buy_transaction['id'])
                 # Determine next operation
@@ -69,10 +69,10 @@ while True:
                 # Get price and log
                 buy_price = price_data['current_price']
                 message = "Place buy order of {} coins at rate {}"
-                logger.write_log(message.format(quantity, buy_price))
+                custom_logger.write_log(message.format(quantity, buy_price))
                 # Place buy order
                 result = binance_apis.buy_coin(coin_pair_symbol, quantity, buy_price)
-                logger.write_log(json.dumps(result))
+                custom_logger.write_log(json.dumps(result))
                 # make entry in database
                 db_transaction_obj.insert_buy_transaction(result)
                 # Determine next operation
@@ -95,4 +95,4 @@ while True:
                 action = 'BUY'
             time.sleep(SLEEP_TIME)
     except Exception as e:
-        logger.write_log('Error occurred : ' + str(e))
+        custom_logger.write_log('Error occurred : ' + str(e))
