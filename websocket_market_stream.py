@@ -2,6 +2,7 @@ from unicorn_binance_websocket_api.unicorn_binance_websocket_api_manager import 
 import database
 import json
 import custom_logger
+import time
 
 db_bot_config_obj = database.BotConfig()
 db_price_data_obj = database.PriceData()
@@ -21,3 +22,5 @@ while True:
             db_price_data_obj.insert_price_data(price)
         else:
             custom_logger.write_log(oldest_stream_data_from_stream_buffer)
+    else:
+        time.sleep(0.2)
