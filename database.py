@@ -104,9 +104,9 @@ class Transaction(Database):
 
 
 class PriceData(Database):
-    def insert_price_data(self, rate):
-        sql = "INSERT INTO price_data (price, timestamp) VALUES (%s, %s)"
-        val = (rate, int(time.time()))
+    def insert_price_data(self, rate, low, high):
+        sql = "INSERT INTO price_data (price, low, high, timestamp) VALUES (%s, %s, %s, %s)"
+        val = (rate, low, high, int(time.time()))
         self.cursor.execute(sql, val)
         self.mydb.commit()
 

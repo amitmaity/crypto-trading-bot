@@ -19,7 +19,9 @@ while True:
         stream_data = json.loads(oldest_stream_data_from_stream_buffer)
         if stream_data.get('data') is not None:
             price = stream_data['data']['c']
-            db_price_data_obj.insert_price_data(price)
+            low = stream_data['data']['l']
+            high = stream_data['data']['h']
+            db_price_data_obj.insert_price_data(price, low, high)
         else:
             custom_logger.write_log(oldest_stream_data_from_stream_buffer)
     else:
