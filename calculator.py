@@ -3,7 +3,7 @@ import custom_logger
 import json
 
 
-def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
+def check_price_for_buy(ticker_price, bot_config, db_price_data_obj):
     price_range_minutes = int(bot_config['price_range_minutes'])
     current_price = float(ticker_price['lastPrice'])
     max_price_data = db_price_data_obj.get_max_price_in_range(price_range_minutes)
@@ -28,9 +28,9 @@ def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
         return None
 
 
-def get_price_for_sell(coin_pair_symbol, bot_config, buy_price, ticker_price):
+def check_price_for_sell(coin_pair_symbol, bot_config, buy_price, current_price):
     result = binance_apis.get_current_price(coin_pair_symbol)
-    current_price = float(ticker_price['lastPrice'])
+    current_price = float(current_price)
     buy_price = float(buy_price)
     if current_price > buy_price:
         price_diff = current_price - buy_price
