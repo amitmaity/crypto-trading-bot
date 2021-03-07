@@ -110,10 +110,10 @@ class PriceData(Database):
         self.cursor.execute(sql, val)
         self.mydb.commit()
 
-    def get_average_price_in_range(self, minutes_before):
+    def get_average_price_in_range(self, timestamp):
         sql = "SELECT AVG(price) AS avg_price, COUNT(id) AS count FROM price_data WHERE timestamp > %s"
-        val = int(time.time()) - (minutes_before * 60)
-        self.cursor.execute(sql, (val,))
+        val = (timestamp,)
+        self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
         return result
 
@@ -126,7 +126,7 @@ class PriceData(Database):
 
     def get_price_for_buy(self):
         timestamp = int(time.time()) - 6
-        sql = "SELECT MIN(price) AS price, COUNT(id) AS count FROM price_data WHERE timestamp >= %s"
+        sql = "SELECT MIN(price) AS price, MAX(timestamp) AS last_updated FROM price_data WHERE timestamp >= %s"
         val = (timestamp,)
         self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
@@ -134,7 +134,7 @@ class PriceData(Database):
 
     def get_price_for_sell(self):
         timestamp = int(time.time()) - 6
-        sql = "SELECT MAX(price) AS price, COUNT(id) AS count FROM price_data WHERE timestamp >= %s"
+        sql = "SELECT MAX(price) AS price, MAX(timestamp) AS last_updated FROM price_data WHERE timestamp >= %s"
         val = (timestamp,)
         self.cursor.execute(sql, val)
         result = self.cursor.fetchone()

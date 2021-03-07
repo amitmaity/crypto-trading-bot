@@ -71,10 +71,8 @@ CREATE TABLE `sell_transactions` (
 INSERT INTO `config` (`config_name`, `config_value`) VALUES
 ('quote_coin', 'BTC'),
 ('base_coin', 'BNB'),
-('buy_price_diff_percentage', '0.5'),
 ('sell_price_diff_percentage', '0.3'),
-('price_range_minutes', '60'),
-('buy_price_diff_percentage_from_24hr_high', '0.8'),
+('average_price_range_days', '7'),
 ('quote_coin_usage_per_transaction', '0.0001'),
 ('coin_quantity_precision', '2');
 

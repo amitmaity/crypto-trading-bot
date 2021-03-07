@@ -41,9 +41,9 @@ while True:
             last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
             buy_price = float(last_buy_transaction['fill_price'])
             price_for_sell = db_price_data_obj.get_price_for_sell()
-            if price_for_sell['count'] >= 5:
+            if int(price_for_sell['last_updated']) - int(time.time()) > 2:
                 sell_price = price_for_sell['price']
-                current_price = calculator.check_price_for_sell(coin_pair_symbol, bot_config, buy_price, sell_price)
+                current_price = calculator.check_price_for_sell(bot_config, buy_price, sell_price)
                 quantity = round(float(last_buy_transaction['fill_quantity']),
                                  int(bot_config['coin_quantity_precision']))
                 if current_price is not None:
@@ -57,12 +57,14 @@ while True:
                     db_transaction_obj.insert_sell_transaction(result, last_buy_transaction['id'])
                     # Determine next operation
                     action = 'BUY' if result['status'] == 'FILLED' else 'CHECK_SELL_STATUS'
+            else:
+                custom_logger.write_log('Price data not up to date')
             time.sleep(SLEEP_TIME)
 
         # BUY logic
         if action == 'BUY':
             price_for_buy = db_price_data_obj.get_price_for_buy()
-            if price_for_buy['count'] >= 5:
+            if int(price_for_buy['last_updated']) - int(time.time()) > 2:
                 buy_price = price_for_buy['price']
                 price_data = calculator.check_price_for_buy(buy_price, bot_config, db_price_data_obj)
                 quote_coin_usage_per_transaction = bot_config['quote_coin_usage_per_transaction']
@@ -79,6 +81,8 @@ while True:
                     db_transaction_obj.insert_buy_transaction(result)
                     # Determine next operation
                     action = 'SELL' if result['status'] == 'FILLED' else 'CHECK_BUY_STATUS'
+            else:
+                custom_logger.write_log('Price data not up to date')
             time.sleep(SLEEP_TIME)
 
         if action == 'CHECK_BUY_STATUS':
