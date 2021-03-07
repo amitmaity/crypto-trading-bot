@@ -1,7 +1,7 @@
 import binance_apis
 import database
 import calculator
-import logger
+import custom_logger
 import time
 import json
 
@@ -19,10 +19,6 @@ coin_pair_symbol = bot_config['base_coin'] + bot_config['quote_coin']
 # Main process loop
 while True:
     try:
-        # Fetch and insert price data
-        ticker_price = binance_apis.get_24h_price(coin_pair_symbol)
-        db_price_data_obj.insert_price_data(ticker_price['lastPrice'])
-
         # Determine the action
         if action is None:
             last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
@@ -44,39 +40,49 @@ while True:
         if action == 'SELL':
             last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
             buy_price = float(last_buy_transaction['fill_price'])
-            current_price = calculator.get_price_for_sell(coin_pair_symbol, bot_config, buy_price, ticker_price)
-            quantity = round(float(last_buy_transaction['fill_quantity']), int(bot_config['coin_quantity_precision']))
-            if current_price is not None:
-                # Log
-                message = "Place sell order of {} coins at rate {}"
-                logger.write_log(message.format(quantity, current_price))
-                # Place sell order
-                result = binance_apis.sell_coin(coin_pair_symbol, quantity, current_price)
-                logger.write_log(json.dumps(result))
-                # make entry in database
-                db_transaction_obj.insert_sell_transaction(result, last_buy_transaction['id'])
-                # Determine next operation
-                action = 'BUY' if result['status'] == 'FILLED' else 'CHECK_SELL_STATUS'
+            price_for_sell = db_price_data_obj.get_price_for_sell()
+            if int(price_for_sell['last_updated']) - int(time.time()) > 2:
+                sell_price = price_for_sell['price']
+                current_price = calculator.check_price_for_sell(bot_config, buy_price, sell_price)
+                quantity = round(float(last_buy_transaction['fill_quantity']),
+                                 int(bot_config['coin_quantity_precision']))
+                if current_price is not None:
+                    # Log
+                    message = "Place sell order of {} coins at rate {}"
+                    custom_logger.write_log(message.format(quantity, current_price))
+                    # Place sell order
+                    result = binance_apis.sell_coin(coin_pair_symbol, quantity, current_price)
+                    custom_logger.write_log(json.dumps(result))
+                    # make entry in database
+                    db_transaction_obj.insert_sell_transaction(result, last_buy_transaction['id'])
+                    # Determine next operation
+                    action = 'BUY' if result['status'] == 'FILLED' else 'CHECK_SELL_STATUS'
+            else:
+                custom_logger.write_log('Price data not up to date')
             time.sleep(SLEEP_TIME)
 
         # BUY logic
         if action == 'BUY':
-            price_data = calculator.get_price_for_buy(ticker_price, bot_config, db_price_data_obj)
-            quote_coin_usage_per_transaction = bot_config['quote_coin_usage_per_transaction']
-            quantity = calculator.calculate_coin_quantity(quote_coin_usage_per_transaction, ticker_price['lastPrice'],
-                                                          bot_config)
-            if price_data is not None:
-                # Get price and log
-                buy_price = price_data['current_price']
-                message = "Place buy order of {} coins at rate {}"
-                logger.write_log(message.format(quantity, buy_price))
-                # Place buy order
-                result = binance_apis.buy_coin(coin_pair_symbol, quantity, buy_price)
-                logger.write_log(json.dumps(result))
-                # make entry in database
-                db_transaction_obj.insert_buy_transaction(result)
-                # Determine next operation
-                action = 'SELL' if result['status'] == 'FILLED' else 'CHECK_BUY_STATUS'
+            price_for_buy = db_price_data_obj.get_price_for_buy()
+            if int(price_for_buy['last_updated']) - int(time.time()) > 2:
+                buy_price = price_for_buy['price']
+                price_data = calculator.check_price_for_buy(buy_price, bot_config, db_price_data_obj)
+                quote_coin_usage_per_transaction = bot_config['quote_coin_usage_per_transaction']
+                quantity = calculator.calculate_coin_quantity(quote_coin_usage_per_transaction, buy_price, bot_config)
+                if price_data is not None:
+                    # Get price and log
+                    buy_price = price_data['current_price']
+                    message = "Place buy order of {} coins at rate {}"
+                    custom_logger.write_log(message.format(quantity, buy_price))
+                    # Place buy order
+                    result = binance_apis.buy_coin(coin_pair_symbol, quantity, buy_price)
+                    custom_logger.write_log(json.dumps(result))
+                    # make entry in database
+                    db_transaction_obj.insert_buy_transaction(result)
+                    # Determine next operation
+                    action = 'SELL' if result['status'] == 'FILLED' else 'CHECK_BUY_STATUS'
+            else:
+                custom_logger.write_log('Price data not up to date')
             time.sleep(SLEEP_TIME)
 
         if action == 'CHECK_BUY_STATUS':
@@ -94,5 +100,6 @@ while True:
                 db_transaction_obj.update_buy_transaction(order_detail)
                 action = 'BUY'
             time.sleep(SLEEP_TIME)
+
     except Exception as e:
-        logger.write_log('Error occurred : ' + str(e))
+        custom_logger.write_log('Error occurred : ' + str(e))

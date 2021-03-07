@@ -44,6 +44,8 @@ DROP TABLE IF EXISTS `price_data`;
 CREATE TABLE `price_data` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `price` decimal(16,10) DEFAULT NULL,
+  `low` decimal(16,10) DEFAULT NULL,
+  `high` decimal(16,10) DEFAULT NULL,
   `timestamp` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
@@ -69,11 +71,8 @@ CREATE TABLE `sell_transactions` (
 INSERT INTO `config` (`config_name`, `config_value`) VALUES
 ('quote_coin', 'BTC'),
 ('base_coin', 'BNB'),
-('buy_price_diff_percentage', '0.5'),
 ('sell_price_diff_percentage', '0.3'),
-('price_range_minutes', '60'),
-('buy_price_diff_percentage_from_24hr_high', '0.8'),
-('api_base_url', 'https://api.binance.com/'),
+('average_price_range_days', '7'),
 ('quote_coin_usage_per_transaction', '0.0001'),
 ('coin_quantity_precision', '2');
 

@@ -104,16 +104,16 @@ class Transaction(Database):
 
 
 class PriceData(Database):
-    def insert_price_data(self, rate):
-        sql = "INSERT INTO price_data (price, timestamp) VALUES (%s, %s)"
-        val = (rate, int(time.time()))
+    def insert_price_data(self, rate, low, high):
+        sql = "INSERT INTO price_data (price, low, high, timestamp) VALUES (%s, %s, %s, %s)"
+        val = (rate, low, high, int(time.time()))
         self.cursor.execute(sql, val)
         self.mydb.commit()
 
-    def get_average_price_in_range(self, minutes_before):
+    def get_average_price_in_range(self, timestamp):
         sql = "SELECT AVG(price) AS avg_price, COUNT(id) AS count FROM price_data WHERE timestamp > %s"
-        val = int(time.time()) - (minutes_before * 60)
-        self.cursor.execute(sql, (val,))
+        val = (timestamp,)
+        self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
         return result
 
@@ -121,5 +121,21 @@ class PriceData(Database):
         sql = "SELECT MAX(price) AS max_price, COUNT(id) AS count FROM price_data WHERE timestamp > %s"
         val = int(time.time()) - (minutes_before * 60)
         self.cursor.execute(sql, (val,))
+        result = self.cursor.fetchone()
+        return result
+
+    def get_price_for_buy(self):
+        timestamp = int(time.time()) - 6
+        sql = "SELECT MIN(price) AS price, MAX(timestamp) AS last_updated FROM price_data WHERE timestamp >= %s"
+        val = (timestamp,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+        return result
+
+    def get_price_for_sell(self):
+        timestamp = int(time.time()) - 6
+        sql = "SELECT MAX(price) AS price, MAX(timestamp) AS last_updated FROM price_data WHERE timestamp >= %s"
+        val = (timestamp,)
+        self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
         return result

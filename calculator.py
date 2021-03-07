@@ -1,42 +1,34 @@
-import binance_apis
-import logger
+import custom_logger
 import json
+import time
 
 
-def get_price_for_buy(ticker_price, bot_config, db_price_data_obj):
-    price_range_minutes = int(bot_config['price_range_minutes'])
-    current_price = float(ticker_price['lastPrice'])
-    max_price_data = db_price_data_obj.get_max_price_in_range(price_range_minutes)
-    if max_price_data['count'] < (price_range_minutes * 10):
-        logger.write_log('Not enough price data, count: ' + str(max_price_data['count']))
+def check_price_for_buy(buy_price, bot_config, db_price_data_obj):
+    price_range_days = int(bot_config['average_price_range_days'])
+    current_price = float(buy_price)
+    starting_timestamp = int(time.time()) - (price_range_days * 86400)
+    minimum_data_points = int(bot_config['minimum_data_points_per_minute']) * 60 * 24 * price_range_days
+    avg_price_data = db_price_data_obj.get_average_price_in_range(starting_timestamp)
+    if avg_price_data['count'] < minimum_data_points:
+        custom_logger.write_log('Not enough price data, count: ' + str(avg_price_data['count']))
         return None
-    max_price = float(max_price_data['max_price'])
-    if current_price < max_price and current_price < float(ticker_price['highPrice']):
-        price_diff = max_price - current_price
-        price_diff_percent = price_diff / max_price * 100
-        price_diff_24hr_high = float(ticker_price['highPrice']) - current_price
-        price_diff_24hr_high_percent = price_diff_24hr_high / float(ticker_price['highPrice']) * 100
-        message = "BUY_CHECK|max_price: {}, current_price: {}, price_diff_percent: {}, 24hr_high_diff_percent: {}"
-        logger.write_log(message.format(max_price, current_price, price_diff_percent, price_diff_24hr_high_percent))
-        cfg_buy_percent = float(bot_config['buy_price_diff_percentage'])
-        cfg_24hr_percent = float(bot_config['buy_price_diff_percentage_from_24hr_high'])
-        if price_diff_percent > cfg_buy_percent and price_diff_24hr_high_percent >= cfg_24hr_percent:
-            return {'current_price': current_price}
-        else:
-            return None
+    avg_price = float(avg_price_data['avg_price'])
+    if current_price < avg_price:
+        message = "BUY_CHECK|avg_price: {}, current_price: {}"
+        custom_logger.write_log(message.format(avg_price, current_price))
+        return {'current_price': current_price}
     else:
         return None
 
 
-def get_price_for_sell(coin_pair_symbol, bot_config, buy_price, ticker_price):
-    result = binance_apis.get_current_price(coin_pair_symbol)
-    current_price = float(ticker_price['lastPrice'])
+def check_price_for_sell(bot_config, buy_price, current_price):
+    current_price = float(current_price)
     buy_price = float(buy_price)
     if current_price > buy_price:
         price_diff = current_price - buy_price
         price_diff_percent = price_diff / buy_price * 100
         message = "SELL_CHECK|current_price: {}, price_dif_percentage: {}"
-        logger.write_log(message.format(current_price, price_diff_percent))
+        custom_logger.write_log(message.format(current_price, price_diff_percent))
         if price_diff_percent > float(bot_config['sell_price_diff_percentage']):
             return current_price
         else:

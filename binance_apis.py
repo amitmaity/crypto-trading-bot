@@ -5,7 +5,7 @@ import hmac
 import hashlib
 from urllib.parse import urlencode
 import json
-import logger
+import custom_logger
 
 # Parse config
 config_parser = ConfigParser()
@@ -49,7 +49,7 @@ def buy_coin(symbol, quantity, price):
     signature = hmac.new(secret_key, total_params, hashlib.sha256).hexdigest()
     payload['signature'] = signature
     headers = {'X-MBX-APIKEY': api_key}
-    logger.write_log(json.dumps(payload))
+    custom_logger.write_log(json.dumps(payload))
     resp = requests.post(url, data=payload, headers=headers)
     data = resp.json()
     return data
@@ -67,7 +67,7 @@ def sell_coin(symbol, quantity, price):
     signature = hmac.new(secret_key, total_params, hashlib.sha256).hexdigest()
     payload['signature'] = signature
     headers = {'X-MBX-APIKEY': api_key}
-    logger.write_log(json.dumps(payload))
+    custom_logger.write_log(json.dumps(payload))
     resp = requests.post(url, data=payload, headers=headers)
     data = resp.json()
     return data
