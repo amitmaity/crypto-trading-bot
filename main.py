@@ -41,7 +41,7 @@ while True:
             last_buy_transaction = db_transaction_obj.get_last_buy_transaction()
             buy_price = float(last_buy_transaction['fill_price'])
             price_for_sell = db_price_data_obj.get_price_for_sell()
-            if int(price_for_sell['last_updated']) - int(time.time()) > 2:
+            if (int(time.time()) - price_for_sell['last_updated']) > 2:
                 sell_price = price_for_sell['price']
                 current_price = calculator.check_price_for_sell(bot_config, buy_price, sell_price)
                 quantity = round(float(last_buy_transaction['fill_quantity']),
@@ -64,7 +64,7 @@ while True:
         # BUY logic
         if action == 'BUY':
             price_for_buy = db_price_data_obj.get_price_for_buy()
-            if int(price_for_buy['last_updated']) - int(time.time()) > 2:
+            if (int(time.time()) - price_for_buy['last_updated']) > 2:
                 buy_price = price_for_buy['price']
                 price_data = calculator.check_price_for_buy(buy_price, bot_config, db_price_data_obj)
                 quote_coin_usage_per_transaction = bot_config['quote_coin_usage_per_transaction']
